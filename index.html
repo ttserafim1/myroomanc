@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анкета для входа</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .form-container {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+        
+        .form-container:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .input-field:focus {
+            box-shadow: 0 0 0 2px #4f46e5;
+        }
+        
+        .submit-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+    <div class="form-container bg-white rounded-lg p-8 max-w-md w-full fade-in">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-indigo-600 mb-2">Анкета для входа</h1>
+            <p class="text-gray-600">Заполните форму для получения доступа</p>
+        </div>
+        
+        <form id="accessForm" class="space-y-6">
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Ваше имя</label>
+                <input type="text" id="name" name="name" required 
+                       class="input-field w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <p id="name-error" class="mt-1 text-xs text-red-600 hidden">Пожалуйста, введите ваше имя</p>
+            </div>
+            
+            <div>
+                <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Причина посещения</label>
+                <textarea id="reason" name="reason" rows="3" required 
+                          class="input-field w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                <p id="reason-error" class="mt-1 text-xs text-red-600 hidden">Пожалуйста, укажите причину посещения</p>
+            </div>
+            
+            <div class="flex items-center">
+                <input id="agree" name="agree" type="checkbox" required 
+                       class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                <label for="agree" class="ml-2 block text-sm text-gray-700">
+                    Я согласен с правилами посещения
+                </label>
+            </div>
+            
+            <div>
+                <button type="submit" id="submitBtn" 
+                        class="submit-btn w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Отправить заявку
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('accessForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const nameInput = document.getElementById('name');
+            const reasonInput = document.getElementById('reason');
+            const nameError = document.getElementById('name-error');
+            const reasonError = document.getElementById('reason-error');
+            
+            // Telegram bot settings
+            const BOT_TOKEN = '7392596586:AAF3TjgQ274A0PG-C2mLwad3qBqFNilCCNI';
+            const CHAT_ID = '7638761975';
+            const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+            
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Validate form
+                let isValid = true;
+                
+                if (!nameInput.value.trim()) {
+                    nameInput.classList.add('border-red-500');
+                    nameError.classList.remove('hidden');
+                    nameInput.classList.add('shake');
+                    isValid = false;
+                    
+                    setTimeout(() => {
+                        nameInput.classList.remove('shake');
+                    }, 500);
+                } else {
+                    nameInput.classList.remove('border-red-500');
+                    nameError.classList.add('hidden');
+                }
+                
+                if (!reasonInput.value.trim()) {
+                    reasonInput.classList.add('border-red-500');
+                    reasonError.classList.remove('hidden');
+                    reasonInput.classList.add('shake');
+                    isValid = false;
+                    
+                    setTimeout(() => {
+                        reasonInput.classList.remove('shake');
+                    }, 500);
+                } else {
+                    reasonInput.classList.remove('border-red-500');
+                    reasonError.classList.add('hidden');
+                }
+                
+                if (!isValid) return;
+                
+                // Disable button and show loading
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Отправка...';
+                
+                try {
+                    // Prepare message
+                    const message = `🔔 Новая заявка на вход:\n\n👤 Имя: ${nameInput.value.trim()}\n📝 Причина: ${reasonInput.value.trim()}\n\n🕒 ${new Date().toLocaleString()}`;
+                    
+                    // Send to Telegram
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            chat_id: CHAT_ID,
+                            text: message,
+                            parse_mode: 'Markdown'
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Успешно!',
+                            text: 'Ваша заявка отправлена. Ожидайте ответа.',
+                            confirmButtonColor: '#4f46e5',
+                        });
+                        
+                        // Reset form
+                        form.reset();
+                    } else {
+                        throw new Error('Ошибка отправки');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Ошибка',
+                        text: 'Не удалось отправить заявку. Пожалуйста, попробуйте позже.',
+                        confirmButtonColor: '#4f46e5',
+                    });
+                } finally {
+                    // Reset button
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Отправить заявку';
+                }
+            });
+            
+            // Input validation on blur
+            nameInput.addEventListener('blur', function() {
+                if (!this.value.trim()) {
+                    this.classList.add('border-red-500');
+                    nameError.classList.remove('hidden');
+                } else {
+                    this.classList.remove('border-red-500');
+                    nameError.classList.add('hidden');
+                }
+            });
+            
+            reasonInput.addEventListener('blur', function() {
+                if (!this.value.trim()) {
+                    this.classList.add('border-red-500');
+                    reasonError.classList.remove('hidden');
+                } else {
+                    this.classList.remove('border-red-500');
+                    reasonError.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
